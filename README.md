@@ -29,14 +29,14 @@ docker compose build
 docker compose up -d
 ```
 
-#### コンテナへの接続
-
-```
-docker compose exec app /bin/sh
-```
-
 #### スクレイピング実行
 
 ```
 docker-compose -f compose.yml up
+```
+
+#### コンテナへの接続
+
+```
+docker compose exec app /bin/sh
 ```

@@ -1,3 +1,6 @@
-requests
-beautifulsoup4
-lxml
+Flask==2.3.2
+flask-cors
+selenium==4.16.0
+beautifulsoup4==4.12.2
+lxml==5.1.0
+requests==2.31.0

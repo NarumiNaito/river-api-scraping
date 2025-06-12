@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: .docker/Dockerfile
-    container_name: river_scraper
+    container_name: river-api-scraping
     working_dir: /app
     volumes:
       - ./app:/app

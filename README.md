@@ -1,10 +1,11 @@
-# river-scraper
+# river-api-scraping
 
 river の API です。
 特定の河川情報を取得する為の API を提供します。
 
 ## 環境
 
+- フレームワーク　: Flask
 - 言語　: python
 
 ## 環境構築
@@ -14,7 +15,7 @@ river の API です。
 #### clone
 
 ```
-git clone git@github.com:NarumiNaito/river-scraper.git
+git clone git@github.com:NarumiNaito/river-api-scraping.git
 ```
 
 #### build
@@ -27,12 +28,6 @@ docker compose build
 
 ```
 docker compose up -d
-```
-
-#### スクレイピング実行
-
-```
-docker-compose -f compose.yml up
 ```
 
 #### コンテナへの接続

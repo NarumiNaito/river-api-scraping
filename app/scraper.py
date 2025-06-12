@@ -70,6 +70,9 @@ def get_water_data():
         if flag_meaning == "未登録":
             continue
 
+        if flag_meaning == "閉局":
+            value = "-"
+
         if time_str == "24:00":
             dt_date = datetime.strptime(date_str, "%Y/%m/%d").date() + timedelta(days=1)
             dt = datetime.combine(dt_date, datetime.min.time())

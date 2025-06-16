@@ -5,8 +5,8 @@ river の API です。
 
 ## 環境
 
-- フレームワーク　: Flask
-- 言語　: python
+- フレームワーク : Flask
+- 言語 : python
 
 ## 環境構築
 

@@ -5,8 +5,8 @@ river の API です。
 
 ## 環境
 
-- フレームワーク　: Flask
-- 言語　: python
+- フレームワーク : Flask
+- 言語 : python
 
 ## 環境構築
 
@@ -16,6 +16,12 @@ river の API です。
 
 ```
 git clone git@github.com:NarumiNaito/river-api-scraping.git
+```
+
+#### .env
+
+```
+.env.exampleをコピーし.envにリネームして下さい
 ```
 
 #### build

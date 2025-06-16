@@ -1,12 +1,20 @@
-from flask import Flask, jsonify
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import re
 import requests
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+import os
+import time
 
-app = Flask(__name__)
+load_dotenv()
+
+SCRAPE_URL = os.getenv("SCRAPE_URL")
 
 FLAG_MEANINGS = {
     '*': '暫定値',
@@ -15,25 +23,52 @@ FLAG_MEANINGS = {
     '-': '未登録',
 }
 
-@app.route("/api/water-level")
 def get_water_data():
     base_url = "https://www1.river.go.jp"
-    html_url = f"{base_url}/cgi-bin/DspWaterData.exe?KIND=9&ID=304031284403020"
+    html_url = SCRAPE_URL
 
     chrome_options = Options()
+    chrome_options.binary_location = "/usr/bin/chromium"
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-software-rasterizer")
 
-    driver = webdriver.Chrome(options=chrome_options)
-    driver.get(html_url)
+    service = Service(executable_path="/usr/bin/chromedriver")
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    soup = BeautifulSoup(driver.page_source, "lxml")
-    driver.quit()
+    a_tag = None
+    soup = None
 
-    a_tag = soup.find("a", href=re.compile(r"/dat/dload/download/.*\.dat$"))
-    if not a_tag:
-        return jsonify({"error": "ページが見つかりませんでした"}), 500
+    try:
+        for attempt in range(3):
+            print(f"ページ取得試行 {attempt + 1}")
+            driver.get(html_url)
+
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='.dat']"))
+                )
+            except Exception as e:
+                print("要素待機中にエラー:", e)
+                time.sleep(2)
+                continue
+
+            soup = BeautifulSoup(driver.page_source, "lxml")
+            a_tag = soup.find("a", href=re.compile(r"/dat/dload/download/.*\.dat$"))
+            if a_tag:
+                print(".dat リンク取得成功")
+                break
+            else:
+                print(".dat リンクが見つかりません。再試行します")
+                time.sleep(2)
+
+        if not a_tag:
+            raise Exception("ページに .dat ファイルのリンクが見つかりませんでした")
+
+    finally:
+        driver.quit()
 
     dat_path = a_tag["href"]
     dat_url = dat_path if dat_path.startswith("http") else base_url + dat_path
@@ -44,6 +79,7 @@ def get_water_data():
 
     metadata = {}
     data_lines = []
+
     for i, line in enumerate(lines):
         if i == 0 and line.startswith("リアルタイム10分水位一覧表"):
             metadata["サイト名"] = line
@@ -69,7 +105,6 @@ def get_water_data():
 
         if flag_meaning == "未登録":
             continue
-
         if flag_meaning == "閉局":
             value = "-"
 
@@ -95,11 +130,8 @@ def get_water_data():
     for r in data:
         del r["_dt"]
 
-    return jsonify({
+    return {
         "metadata": metadata,
         "data": data,
         "source_dat_url": dat_url
-    })
-
-if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=5001)
+    }

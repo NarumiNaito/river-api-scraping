@@ -18,6 +18,12 @@ river の API です。
 git clone git@github.com:NarumiNaito/river-api-scraping.git
 ```
 
+#### .env
+
+```
+.env.exampleをコピーし.envにリネームして下さい
+```
+
 #### build
 
 ```

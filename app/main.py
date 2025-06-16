@@ -1,24 +1,45 @@
-import json, traceback
-from flask import Flask, Response
+import json, traceback, threading, time, os
+from flask import Flask, jsonify, Response
 from flask_cors import CORS
 from scraper import get_water_data
+from dotenv import load_dotenv
+
+load_dotenv()
+
+PORT = int(os.getenv("FLASK_PORT", 5001))
+SCRAPE_INTERVAL_SECONDS = int(os.getenv("SCRAPE_INTERVAL_SECONDS", 600))  
 
 app = Flask(__name__)
 CORS(app)
 
+cached_data = None
+cached_lock = threading.Lock()
+
+def update_data_periodically():
+    global cached_data
+    while True:
+        try:
+            print("水位データの更新中...")
+            data = get_water_data()
+            with cached_lock:
+                cached_data = data
+            print("水位データの更新")
+        except Exception as e:
+            print("水位データの更新エラー:", str(e))
+        time.sleep(SCRAPE_INTERVAL_SECONDS)
+
 @app.route("/api/water-level", methods=["GET"])
 def water_level():
-    try:
-        return get_water_data()  
-    except Exception as e:
-        import traceback
-        err = {
-            "error": str(e),
-            "trace": traceback.format_exc()
-        }
-        payload = json.dumps(err, ensure_ascii=False)
-        return Response(payload, status=500, mimetype="application/json; charset=utf-8")
-        
+    with cached_lock:
+        if cached_data:
+            return jsonify(cached_data)
+    return Response(
+        json.dumps({"error": "データがまだ取得されていません"}, ensure_ascii=False),
+        status=503,
+        mimetype="application/json; charset=utf-8"
+    )
+
 if __name__ == "__main__":
-    print("Starting Flask")
-    app.run(debug=True, host="0.0.0.0", port=5001)
+    print("Starting Flask with background updater...")
+    threading.Thread(target=update_data_periodically, daemon=True).start()
+    app.run(debug=False, host="0.0.0.0", port=PORT)

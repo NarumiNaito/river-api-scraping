@@ -1,6 +1,6 @@
 # river-api-scraping
 
-river の API です。
+river の API サーバーのリポジトリです。
 特定の河川情報を取得する為の API を提供します。
 
 ## 環境
@@ -18,10 +18,10 @@ river の API です。
 git clone git@github.com:NarumiNaito/river-api-scraping.git
 ```
 
-#### .env
+#### .env「.env.example をコピーし.env にリネームして下さい.」
 
 ```
-.env.exampleをコピーし.envにリネームして下さい
+cp .env.example .env
 ```
 
 #### build

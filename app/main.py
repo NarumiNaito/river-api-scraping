@@ -10,14 +10,26 @@ PORT = int(os.getenv("FLASK_PORT", 5001))
 SCRAPE_INTERVAL_SECONDS = int(os.getenv("SCRAPE_INTERVAL_SECONDS", 600))  
 
 app = Flask(__name__)
-CORS(app)
+
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS").split(",")
+CORS(app, resources={r"/api/*": {"origins": CORS_ALLOWED_ORIGINS}})
 
 cached_data = None
 cached_lock = threading.Lock()
 
 def update_data_periodically():
     global cached_data
+    try:
+        print("初回データ取得中...")
+        data = get_water_data()
+        with cached_lock:
+            cached_data = data
+        print("初回データ取得完了")
+    except Exception as e:
+        print("初回データ取得エラー:", str(e))
+
     while True:
+        start_time = time.time()
         try:
             print("水位データの更新中...")
             data = get_water_data()
@@ -26,7 +38,9 @@ def update_data_periodically():
             print("水位データの更新")
         except Exception as e:
             print("水位データの更新エラー:", str(e))
-        time.sleep(SCRAPE_INTERVAL_SECONDS)
+        elapsed = time.time() - start_time
+        time.sleep(max(SCRAPE_INTERVAL_SECONDS - elapsed, 0))
+
 
 @app.route("/api/water-level", methods=["GET"])
 def water_level():

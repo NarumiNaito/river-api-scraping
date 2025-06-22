@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 PORT = int(os.getenv("FLASK_PORT", 5001))
-SCRAPE_INTERVAL_SECONDS = int(os.getenv("SCRAPE_INTERVAL_SECONDS", 600))  
+SCRAPE_INTERVAL_SECONDS = int(os.getenv("SCRAPE_INTERVAL_SECONDS", 300))  
 
 app = Flask(__name__)
 
